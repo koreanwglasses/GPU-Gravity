@@ -63,7 +63,11 @@ export async function tensorToBodies(
 
 export function stepGravity(
   data: Tensor,
-  { dt, gravConst = 1 }: { dt: number; gravConst?: number }
+  {
+    dt,
+    gravConst = 1,
+    dragCoeff = 0
+  }: { dt: number; gravConst?: number; dragCoeff?: number }
 ) {
   return tf.tidy(() => {
     const pos = data.slice([0, 0], [-1, 2]);
@@ -79,7 +83,7 @@ export function stepGravity(
       tf.mul(diagMask, tf.div(r, tf.pow(rNorm, 3).expandDims(2)))
     );
 
-    const acc = tf.sum(force, 0);
+    const acc = tf.sub(tf.sum(force, 0), tf.mul(dragCoeff, vel));
 
     const newVel = tf.add(vel, tf.mul(dt, acc));
     const newPos = tf.add(pos, tf.mul(dt, newVel));
@@ -108,10 +112,10 @@ export function stepBoundary(
       tf.greater(tf.add(pos, radius), [maxX, maxY])
     );
 
-    const posX = tf.clipByValue(pos.slice([0, 0], [-1, 1]), minX, maxX);
-    const posY = tf.clipByValue(pos.slice([0, 1], [-1, 1]), minY, maxY);
-
-    const newPos = tf.concat([posX, posY], 1);
+    const newPos = tf.minimum(
+      tf.maximum(pos, tf.add([[minX, minY]], radius)),
+      tf.sub([[maxX, maxY]], radius)
+    );
     const newVel = tf.mul(vel, tf.sub(1, tf.mul(oob, 2)));
 
     const newData = tf.concat([newPos, newVel, radius], 1);

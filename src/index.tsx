@@ -8,7 +8,7 @@ import {
   stepBoundary
 } from "./model/simulation";
 import { renderToCanvas } from "./view/canvas-renderer";
-import { tensor, Tensor } from "@tensorflow/tfjs";
+import { stepCollisions } from "./model/collisions";
 
 (async () => {
   console.debug(`[Global] TF Backend: ${tf.getBackend()}`);
@@ -17,8 +17,9 @@ import { tensor, Tensor } from "@tensorflow/tfjs";
   const ctx = canvas.getContext("2d");
 
   let bodies: PhysicsBody[] = [
-    { posX: 200, posY: 400, velX: 0, velY: 300, radius: 10 },
-    { posX: 600, posY: 400, velX: 0, velY: -300, radius: 10 }
+    { posX: 200, posY: 400, velX: 0, velY: 200, radius: 50 },
+    { posX: 600, posY: 400, velX: 0, velY: -200, radius: 50 },
+    { posX: 100, posY: 100, velX: 100, velY: 0, radius: 50 }
   ];
 
   let data = bodiesToTensor(bodies);
@@ -26,7 +27,7 @@ import { tensor, Tensor } from "@tensorflow/tfjs";
   async function animate() {
     // step the simulation
     data = updateTensor(data, data =>
-      stepGravity(data, { dt: 1 / 60, gravConst: 1e7 })
+      stepGravity(data, { dt: 1 / 60, gravConst: 1e7, dragCoeff: 0.1 })
     );
     data = updateTensor(data, data =>
       stepBoundary(data, { maxX: canvas.width, maxY: canvas.height })
@@ -35,6 +36,12 @@ import { tensor, Tensor } from "@tensorflow/tfjs";
     // Retrieve data to draw
     bodies = await tensorToBodies(data, bodies);
 
+    // apply collisions
+    stepCollisions(bodies);
+    data.dispose();
+    data = bodiesToTensor(bodies);
+
+    // Draw
     ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "black";
