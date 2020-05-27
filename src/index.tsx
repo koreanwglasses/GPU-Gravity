@@ -3,10 +3,12 @@ import { PhysicsBody } from "./model/physics-body";
 import {
   bodiesToTensor,
   stepGravity,
-  tensorToBodies
+  tensorToBodies,
+  updateTensor,
+  stepBoundary
 } from "./model/simulation";
 import { renderToCanvas } from "./view/canvas-renderer";
-import { tensor } from "@tensorflow/tfjs";
+import { tensor, Tensor } from "@tensorflow/tfjs";
 
 (async () => {
   console.debug(`[Global] TF Backend: ${tf.getBackend()}`);
@@ -15,18 +17,20 @@ import { tensor } from "@tensorflow/tfjs";
   const ctx = canvas.getContext("2d");
 
   let bodies: PhysicsBody[] = [
-    { posX: 200, posY: 400, velX: 0, velY: 100, radius: 10 },
-    { posX: 600, posY: 400, velX: 0, velY: -100, radius: 10 }
+    { posX: 200, posY: 400, velX: 0, velY: 300, radius: 10 },
+    { posX: 600, posY: 400, velX: 0, velY: -300, radius: 10 }
   ];
-  let data = bodiesToTensor(bodies);
-  async function animate() {
-    // Debugging
-    // console.log(tf.memory());
 
+  let data = bodiesToTensor(bodies);
+
+  async function animate() {
     // step the simulation
-    const result = stepGravity(data, { dt: 1 / 60, gravConst: 1e7 });
-    data.dispose();
-    data = result;
+    data = updateTensor(data, data =>
+      stepGravity(data, { dt: 1 / 60, gravConst: 1e7 })
+    );
+    data = updateTensor(data, data =>
+      stepBoundary(data, { maxX: canvas.width, maxY: canvas.height })
+    );
 
     // Retrieve data to draw
     bodies = await tensorToBodies(data, bodies);
@@ -40,5 +44,7 @@ import { tensor } from "@tensorflow/tfjs";
   }
 
   animate();
-  // sim.dispose();
+
+  setInterval(() => console.log(tf.memory()), 5000);
+  // data.dispose()
 })();
