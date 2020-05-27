@@ -1,5 +1,5 @@
 import * as tf from "@tensorflow/tfjs";
-import { TFSimulator } from "./simulation";
+import { TFSimulator } from "./model/simulation";
 
 (async () => {
   console.debug(`[Global] TF Backend: ${tf.getBackend()}`);

@@ -1,11 +1,5 @@
 import * as tf from "@tensorflow/tfjs";
-
-interface Body {
-  posX: number;
-  posY: number;
-  velX: number;
-  velY: number;
-}
+import { Body } from "./body";
 
 export class TFSimulator {
   /**
