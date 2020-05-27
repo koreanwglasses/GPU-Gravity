@@ -18,3 +18,7 @@ sim.addBody({ x: 1, y: 2 }, { x: 1, y: 2 });
 
 console.debug(`[Global] TF Memory:`, tf.memory());
 sim.debug("[TFSimulator] ");
+
+sim.dispose();
+
+console.debug(`[Global] TF Memory:`, tf.memory());
