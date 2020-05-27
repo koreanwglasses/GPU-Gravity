@@ -59,10 +59,15 @@ let bodies: PhysicsBody[] = new Array(params.n ? +params.n : 10)
 
 let data = bodiesToTensor(bodies);
 
-async function animate() {
+let lastT = 0;
+async function animate(t: number) {
+  let dt = lastT ? (t - lastT) / 1000 : 1 / 60;
+  lastT = t;
+  dt = Math.min(dt, 1);
+
   // step the simulation
   data = updateTensor(data, data =>
-    stepGravity(data, { dt: 1 / 60, gravConst: 1e5, dragCoeff: 0.1 })
+    stepGravity(data, { dt, gravConst: 1e5, dragCoeff: 0.1 })
   );
   data = updateTensor(data, data =>
     stepBoundary(data, { maxX: canvas.width, maxY: canvas.height })
@@ -85,7 +90,7 @@ async function animate() {
   requestAnimationFrame(animate);
 }
 
-animate();
+requestAnimationFrame(animate);
 
 setInterval(() => console.log(tf.memory()), 5000);
 // data.dispose()

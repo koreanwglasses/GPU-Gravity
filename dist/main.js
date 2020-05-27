@@ -140,14 +140,18 @@ const canvas = document.getElementById("canvas");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const ctx = canvas.getContext("2d");
-let bodies = new Array(params.n ? +params.n : 75)
+let bodies = new Array(params.n ? +params.n : 10)
     .fill(null)
     .map(() => randomBody(canvas.width, canvas.height));
 let data = simulation_1.bodiesToTensor(bodies);
-function animate() {
+let lastT = 0;
+function animate(t) {
     return __awaiter(this, void 0, void 0, function* () {
+        let dt = lastT ? (t - lastT) / 1000 : 1 / 60;
+        lastT = t;
+        dt = Math.min(dt, 1);
         // step the simulation
-        data = simulation_1.updateTensor(data, data => simulation_1.stepGravity(data, { dt: 1 / 60, gravConst: 1e5, dragCoeff: 0.1 }));
+        data = simulation_1.updateTensor(data, data => simulation_1.stepGravity(data, { dt, gravConst: 1e5, dragCoeff: 0.1 }));
         data = simulation_1.updateTensor(data, data => simulation_1.stepBoundary(data, { maxX: canvas.width, maxY: canvas.height }));
         // Retrieve data to draw
         bodies = yield simulation_1.tensorToBodies(data, bodies);
@@ -163,7 +167,7 @@ function animate() {
         requestAnimationFrame(animate);
     });
 }
-animate();
+requestAnimationFrame(animate);
 setInterval(() => console.log(tf.memory()), 5000);
 // data.dispose()
 
