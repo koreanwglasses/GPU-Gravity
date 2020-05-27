@@ -97,7 +97,53 @@
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const tf = __webpack_require__(/*! @tensorflow/tfjs */ "@tensorflow/tfjs");
-console.log(tf.getBackend());
+const simulation_1 = __webpack_require__(/*! ./simulation */ "./src/simulation.ts");
+console.debug(`[Global] TF Backend: ${tf.getBackend()}`);
+console.debug(`[Global] TF Memory:`, tf.memory());
+const sim = new simulation_1.TFSimulator();
+console.debug(`[Global] TF Memory:`, tf.memory());
+sim.debug("[TFSimulator] ");
+sim.addBody({ x: 1, y: 2 });
+console.debug(`[Global] TF Memory:`, tf.memory());
+sim.debug("[TFSimulator] ");
+sim.addBody({ x: 1, y: 2 }, { x: 1, y: 2 });
+console.debug(`[Global] TF Memory:`, tf.memory());
+sim.debug("[TFSimulator] ");
+
+
+/***/ }),
+
+/***/ "./src/simulation.ts":
+/*!***************************!*\
+  !*** ./src/simulation.ts ***!
+  \***************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const tf = __webpack_require__(/*! @tensorflow/tfjs */ "@tensorflow/tfjs");
+class TFSimulator {
+    constructor() {
+        /**
+         * Body data stored as a (n x 2) tensor
+         */
+        this.data = tf.zeros([0, 2]);
+    }
+    addBody(...bodies) {
+        const result = tf.concat([this.data, bodies.map(({ x, y }) => [x, y])], 0);
+        this.data.dispose();
+        this.data = result;
+    }
+    dispose() {
+        this.data.dispose();
+    }
+    debug(prefix = "") {
+        console.debug(`${prefix}data shape: ${this.data.shape}`);
+    }
+}
+exports.TFSimulator = TFSimulator;
 
 
 /***/ }),
