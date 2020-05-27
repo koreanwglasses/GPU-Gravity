@@ -3,7 +3,8 @@
   "scripts": {
     "format": "npx prettier --write \"./**/*.{ts,tsx,js,jsx,json}\"",
     "compile": "npx webpack",
-    "serve": "npx serve"
+    "serve": "npx serve",
+    "run": "npm run format && npm run compile && npm run serve"
   },
   "devDependencies": {
     "@types/react": "^16.9.19",
@@ -22,6 +23,7 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "^1.7.4",
     "acorn": "^7.1.1",
     "minimist": "^1.2.2",
     "react": "^16.12.0",
