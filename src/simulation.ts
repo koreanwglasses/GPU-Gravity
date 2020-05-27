@@ -27,6 +27,21 @@ export class TFSimulator {
     this.data = result;
   }
 
+  async getBodies() {
+    const array = (await this.data.array()) as [
+      number,
+      number,
+      number,
+      number
+    ][];
+    return array.map(([posX, posY, velX, velY]) => ({
+      posX,
+      posY,
+      velX,
+      velY
+    }));
+  }
+
   step(dt: number) {
     const result = tf.tidy(() => {
       const pos = this.data.slice([0, 0], [-1, 2]);

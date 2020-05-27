@@ -18,6 +18,8 @@ import { TFSimulator } from "./simulation";
   console.debug(`[Global] TF Memory:`, tf.memory());
   sim.debug({ prefix: "[TFSimulator] ", printData: true });
 
+  console.log(await sim.getBodies());
+
   sim.dispose();
 
   console.debug(`[Global] TF Memory:`, tf.memory());
