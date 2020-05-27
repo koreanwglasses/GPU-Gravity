@@ -28,8 +28,8 @@ function randomBody(maxX: number, maxY: number): PhysicsBody {
   let posY = Math.random() * maxY;
 
   let [velX, velY] = boxMuller();
-  velX *= 20;
-  velY *= 20;
+  velX *= 50;
+  velY *= 50;
 
   let radius = Math.random() * 20 + 10;
 
@@ -37,12 +37,12 @@ function randomBody(maxX: number, maxY: number): PhysicsBody {
 }
 
 let gravConst = 1e6;
-(document.getElementById("grav-slider") as HTMLInputElement).addEventListener(
-  "input",
-  function() {
-    gravConst = Math.pow(10, +this.value);
-  }
-);
+// (document.getElementById("grav-slider") as HTMLInputElement).addEventListener(
+//   "input",
+//   function() {
+//     gravConst = Math.pow(10, +this.value);
+//   }
+// );
 
 console.debug(`[Global] TF Backend: ${tf.getBackend()}`);
 
