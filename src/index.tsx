@@ -22,7 +22,7 @@ import { renderToCanvas } from "./view/canvas-renderer";
     sim.step(1 / 60);
     const bodies = await sim.getBodies();
 
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "black";
     renderToCanvas(ctx, bodies);
