@@ -1,24 +1,24 @@
 import * as tf from "@tensorflow/tfjs";
 import { TFSimulator } from "./simulation";
 
-console.debug(`[Global] TF Backend: ${tf.getBackend()}`);
-console.debug(`[Global] TF Memory:`, tf.memory());
+(async () => {
+  console.debug(`[Global] TF Backend: ${tf.getBackend()}`);
+  console.debug(`[Global] TF Memory:`, tf.memory());
 
-const sim = new TFSimulator();
+  const sim = new TFSimulator();
 
-console.debug(`[Global] TF Memory:`, tf.memory());
-sim.debug("[TFSimulator] ");
+  sim.addBody({ posX: 1, posY: 2, velX: 0, velY: 1 });
+  sim.addBody({ posX: 4, posY: 8, velX: 0, velY: -1 });
+  sim.addBody({ posX: 16, posY: 32, velX: 0, velY: 0 });
 
-sim.addBody({ x: 1, y: 2 });
+  console.debug(`[Global] TF Memory:`, tf.memory());
+  sim.debug({ prefix: "[TFSimulator] ", printData: true });
 
-console.debug(`[Global] TF Memory:`, tf.memory());
-sim.debug("[TFSimulator] ");
+  sim.step(1 / 60);
+  console.debug(`[Global] TF Memory:`, tf.memory());
+  sim.debug({ prefix: "[TFSimulator] ", printData: true });
 
-sim.addBody({ x: 1, y: 2 }, { x: 1, y: 2 });
+  sim.dispose();
 
-console.debug(`[Global] TF Memory:`, tf.memory());
-sim.debug("[TFSimulator] ");
-
-sim.dispose();
-
-console.debug(`[Global] TF Memory:`, tf.memory());
+  console.debug(`[Global] TF Memory:`, tf.memory());
+})();
