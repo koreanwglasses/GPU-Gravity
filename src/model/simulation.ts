@@ -1,103 +1,58 @@
 import * as tf from "@tensorflow/tfjs";
 import { PhysicsBody } from "./physics-body";
+import { Tensor } from "@tensorflow/tfjs";
 
-export class TFSimulator {
-  private bodies: PhysicsBody[] = [];
+export function bodiesToTensor(bodies: PhysicsBody[]) {
+  return tf.tensor(
+    bodies.map(({ posX, posY, velX, velY }) => [posX, posY, velX, velY])
+  );
+}
 
-  /**
-   * Dynamic body data stored as a (n x 2) tensor
-   */
-  private data: tf.Tensor = tf.zeros([0, 4]);
+export async function tensorToBodies(
+  data: tf.Tensor
+): Promise<Partial<PhysicsBody>[]>;
+export async function tensorToBodies(
+  data: tf.Tensor,
+  bodies: PhysicsBody[]
+): Promise<PhysicsBody[]>;
+export async function tensorToBodies(
+  data: tf.Tensor,
+  bodies?: PhysicsBody[]
+): Promise<Partial<PhysicsBody>[]> {
+  const array = (await data.array()) as [number, number, number, number][];
 
-  constructor(public gravConst = 1) {}
+  return array.map(([posX, posY, velX, velY], i) => ({
+    ...(bodies ? bodies[i] : {}),
+    posX,
+    posY,
+    velX,
+    velY
+  }));
+}
 
-  addBody(...bodies: PhysicsBody[]) {
-    this.bodies.push(...bodies);
+export function stepGravity(
+  data: Tensor,
+  { dt, gravConst = 1 }: { dt: number; gravConst?: number }
+) {
+  return tf.tidy(() => {
+    const pos = data.slice([0, 0], [-1, 2]);
+    const vel = data.slice([0, 2], [-1, 2]);
 
-    const result = tf.concat(
-      [
-        this.data,
-        bodies.map(({ posX, posY, velX, velY }) => [posX, posY, velX, velY])
-      ],
-      0
+    const r = tf.sub(pos.expandDims(), pos.expandDims(1));
+    const rNorm = tf.norm(r, 2, 2);
+
+    const diagMask = tf.sub(1, tf.eye(pos.shape[0])).expandDims(2);
+    const force = tf.mul(
+      -gravConst,
+      tf.mul(diagMask, tf.div(r, tf.pow(rNorm, 3).expandDims(2)))
     );
-    this.data.dispose();
-    this.data = result;
-  }
 
-  async updateBodies(bodies: { index: number; body: PhysicsBody }[]) {
-    bodies.forEach(({ index, body }) => (this.bodies[index] = body));
+    const acc = tf.sum(force, 0);
 
-    const buffer = await this.data.buffer();
+    const newVel = tf.add(vel, tf.mul(dt, acc));
+    const newPos = tf.add(pos, tf.mul(dt, newVel));
 
-    bodies.forEach(({ index, body }) => {
-      buffer.set(body.posX, index, 0);
-      buffer.set(body.posY, index, 1);
-      buffer.set(body.velX, index, 2);
-      buffer.set(body.velY, index, 3);
-    });
-
-    this.data.dispose();
-    this.data = buffer.toTensor();
-  }
-
-  async getBodies(): Promise<PhysicsBody[]> {
-    const array = (await this.data.array()) as [
-      number,
-      number,
-      number,
-      number
-    ][];
-    return array.map(([posX, posY, velX, velY], i) => ({
-      ...this.bodies[i],
-      posX,
-      posY,
-      velX,
-      velY
-    }));
-  }
-
-  step(dt: number) {
-    const result = tf.tidy(() => {
-      const pos = this.data.slice([0, 0], [-1, 2]);
-      const vel = this.data.slice([0, 2], [-1, 2]);
-
-      const r = tf.sub(pos.expandDims(), pos.expandDims(1));
-      const rNorm = tf.norm(r, 2, 2);
-
-      const diagMask = tf.sub(1, tf.eye(pos.shape[0])).expandDims(2);
-      const force = tf.mul(
-        -this.gravConst,
-        tf.mul(diagMask, tf.div(r, tf.pow(rNorm, 3).expandDims(2)))
-      );
-
-      const acc = tf.sum(force, 0);
-
-      const newVel = tf.add(vel, tf.mul(dt, acc));
-      const newPos = tf.add(pos, tf.mul(dt, newVel));
-
-      const newData = tf.concat([newPos, newVel], 1);
-      return newData;
-    });
-
-    this.data.dispose();
-    this.data = result;
-  }
-
-  dispose() {
-    this.data.dispose();
-    this.data = null;
-  }
-
-  debug({ prefix = "", printData = false }) {
-    if (this.data == null) {
-      console.debug(`${prefix} no data`);
-    }
-
-    console.debug(`${prefix}data shape: ${this.data.shape}`);
-    if (printData) {
-      console.debug(`${prefix}data:`);
-      this.data.print();
-    }
-  }
+    const newData = tf.concat([newPos, newVel], 1);
+    return newData;
+  });
 }
