@@ -1,26 +1,35 @@
 import * as tf from "@tensorflow/tfjs";
+import { PhysicsBody } from "./model/physics-body";
 import { TFSimulator } from "./model/simulation";
+import { renderToCanvas } from "./view/canvas-renderer";
 
 (async () => {
   console.debug(`[Global] TF Backend: ${tf.getBackend()}`);
-  console.debug(`[Global] TF Memory:`, tf.memory());
 
-  const sim = new TFSimulator();
+  const bodies: PhysicsBody[] = [
+    { posX: 200, posY: 400, velX: 0, velY: 100, radius: 10 },
+    { posX: 600, posY: 400, velX: 0, velY: -100, radius: 10 }
+  ];
 
-  sim.addBody({ posX: 1, posY: 2, velX: 0, velY: 1 });
-  sim.addBody({ posX: 4, posY: 8, velX: 0, velY: -1 });
-  sim.addBody({ posX: 16, posY: 32, velX: 0, velY: 0 });
+  const sim = new TFSimulator(1e7);
 
-  console.debug(`[Global] TF Memory:`, tf.memory());
-  sim.debug({ prefix: "[TFSimulator] ", printData: true });
+  sim.addBody(...bodies);
 
-  sim.step(1 / 60);
-  console.debug(`[Global] TF Memory:`, tf.memory());
-  sim.debug({ prefix: "[TFSimulator] ", printData: true });
+  const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+  const ctx = canvas.getContext("2d");
 
-  console.log(await sim.getBodies());
+  async function animate() {
+    sim.step(1 / 60);
+    const bodies = await sim.getBodies();
 
-  sim.dispose();
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "black";
+    renderToCanvas(ctx, bodies);
 
-  console.debug(`[Global] TF Memory:`, tf.memory());
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+  // sim.dispose();
 })();

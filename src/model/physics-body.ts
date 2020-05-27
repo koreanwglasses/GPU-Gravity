@@ -1,6 +1,7 @@
-export interface Body {
+export interface PhysicsBody {
   posX: number;
   posY: number;
   velX: number;
   velY: number;
+  radius: number;
 }

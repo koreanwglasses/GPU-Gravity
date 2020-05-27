@@ -1,15 +1,19 @@
 import * as tf from "@tensorflow/tfjs";
-import { Body } from "./body";
+import { PhysicsBody } from "./physics-body";
 
 export class TFSimulator {
+  private bodies: PhysicsBody[] = [];
+
   /**
-   * Body data stored as a (n x 2) tensor
+   * Dynamic body data stored as a (n x 2) tensor
    */
   private data: tf.Tensor = tf.zeros([0, 4]);
 
   constructor(public gravConst = 1) {}
 
-  addBody(...bodies: Body[]) {
+  addBody(...bodies: PhysicsBody[]) {
+    this.bodies.push(...bodies);
+
     const result = tf.concat(
       [
         this.data,
@@ -21,14 +25,15 @@ export class TFSimulator {
     this.data = result;
   }
 
-  async getBodies() {
+  async getBodies(): Promise<PhysicsBody[]> {
     const array = (await this.data.array()) as [
       number,
       number,
       number,
       number
     ][];
-    return array.map(([posX, posY, velX, velY]) => ({
+    return array.map(([posX, posY, velX, velY], i) => ({
+      ...this.bodies[i],
       posX,
       posY,
       velX,
