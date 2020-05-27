@@ -25,6 +25,22 @@ export class TFSimulator {
     this.data = result;
   }
 
+  async updateBodies(bodies: { index: number; body: PhysicsBody }[]) {
+    bodies.forEach(({ index, body }) => (this.bodies[index] = body));
+
+    const buffer = await this.data.buffer();
+
+    bodies.forEach(({ index, body }) => {
+      buffer.set(body.posX, index, 0);
+      buffer.set(body.posY, index, 1);
+      buffer.set(body.velX, index, 2);
+      buffer.set(body.velY, index, 3);
+    });
+
+    this.data.dispose();
+    this.data = buffer.toTensor();
+  }
+
   async getBodies(): Promise<PhysicsBody[]> {
     const array = (await this.data.array()) as [
       number,
