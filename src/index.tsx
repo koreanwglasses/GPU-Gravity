@@ -36,20 +36,24 @@ function randomBody(maxX: number, maxY: number): PhysicsBody {
   return { posX, posY, velX, velY, radius };
 }
 
-let gravConst = 1e6;
-// (document.getElementById("grav-slider") as HTMLInputElement).addEventListener(
-//   "input",
-//   function() {
-//     gravConst = Math.pow(10, +this.value);
-//   }
-// );
-
 console.debug(`[Global] TF Backend: ${tf.getBackend()}`);
 
+const hash = window.location.hash.substr(1);
+const params: { n?: string } = hash
+  .split("&")
+  .reduce(function(result: any, item) {
+    var parts = item.split("=");
+    result[parts[0]] = parts[1];
+    return result;
+  }, {});
+
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
 const ctx = canvas.getContext("2d");
 
-let bodies: PhysicsBody[] = new Array(10)
+let bodies: PhysicsBody[] = new Array(params.n ? +params.n : 10)
   .fill(null)
   .map(() => randomBody(canvas.width, canvas.height));
 
@@ -58,7 +62,7 @@ let data = bodiesToTensor(bodies);
 async function animate() {
   // step the simulation
   data = updateTensor(data, data =>
-    stepGravity(data, { dt: 1 / 60, gravConst, dragCoeff: 0.1 })
+    stepGravity(data, { dt: 1 / 60, gravConst: 1e5, dragCoeff: 0.1 })
   );
   data = updateTensor(data, data =>
     stepBoundary(data, { maxX: canvas.width, maxY: canvas.height })

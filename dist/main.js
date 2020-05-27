@@ -127,24 +127,27 @@ function randomBody(maxX, maxY) {
     let radius = Math.random() * 20 + 10;
     return { posX, posY, velX, velY, radius };
 }
-let gravConst = 1e6;
-// (document.getElementById("grav-slider") as HTMLInputElement).addEventListener(
-//   "input",
-//   function() {
-//     gravConst = Math.pow(10, +this.value);
-//   }
-// );
 console.debug(`[Global] TF Backend: ${tf.getBackend()}`);
+const hash = window.location.hash.substr(1);
+const params = hash
+    .split("&")
+    .reduce(function (result, item) {
+    var parts = item.split("=");
+    result[parts[0]] = parts[1];
+    return result;
+}, {});
 const canvas = document.getElementById("canvas");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 const ctx = canvas.getContext("2d");
-let bodies = new Array(10)
+let bodies = new Array(params.n ? +params.n : 75)
     .fill(null)
     .map(() => randomBody(canvas.width, canvas.height));
 let data = simulation_1.bodiesToTensor(bodies);
 function animate() {
     return __awaiter(this, void 0, void 0, function* () {
         // step the simulation
-        data = simulation_1.updateTensor(data, data => simulation_1.stepGravity(data, { dt: 1 / 60, gravConst, dragCoeff: 0.1 }));
+        data = simulation_1.updateTensor(data, data => simulation_1.stepGravity(data, { dt: 1 / 60, gravConst: 1e5, dragCoeff: 0.1 }));
         data = simulation_1.updateTensor(data, data => simulation_1.stepBoundary(data, { maxX: canvas.width, maxY: canvas.height }));
         // Retrieve data to draw
         bodies = yield simulation_1.tensorToBodies(data, bodies);
