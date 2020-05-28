@@ -39,7 +39,7 @@ function randomBody(maxX: number, maxY: number): PhysicsBody {
 console.debug(`[Global] TF Backend: ${tf.getBackend()}`);
 
 const hash = window.location.hash.substr(1);
-const params: { n?: string } = hash
+const params: { n?: string; drag?: string } = hash
   .split("&")
   .reduce(function(result: any, item) {
     var parts = item.split("=");
@@ -67,7 +67,11 @@ async function animate(t: number) {
 
   // step the simulation
   data = updateTensor(data, data =>
-    stepGravity(data, { dt, gravConst: 1e5, dragCoeff: 0.01 })
+    stepGravity(data, {
+      dt,
+      gravConst: 1e5,
+      dragCoeff: params.drag ? +params.drag : 0.01
+    })
   );
   data = updateTensor(data, data =>
     stepBoundary(data, { maxX: canvas.width, maxY: canvas.height })

@@ -151,7 +151,11 @@ function animate(t) {
         lastT = t;
         dt = Math.min(dt, 1);
         // step the simulation
-        data = simulation_1.updateTensor(data, data => simulation_1.stepGravity(data, { dt, gravConst: 1e5, dragCoeff: 0.01 }));
+        data = simulation_1.updateTensor(data, data => simulation_1.stepGravity(data, {
+            dt,
+            gravConst: 1e5,
+            dragCoeff: params.drag ? +params.drag : 0.01
+        }));
         data = simulation_1.updateTensor(data, data => simulation_1.stepBoundary(data, { maxX: canvas.width, maxY: canvas.height }));
         // Retrieve data to draw
         bodies = yield simulation_1.tensorToBodies(data, bodies);
