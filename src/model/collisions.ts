@@ -122,8 +122,13 @@ function dist(body1: PhysicsBody, body2: PhysicsBody) {
 }
 
 function* computeCollisions(kdtree: KDTree, bodies: PhysicsBody[]) {
+  const maxRadius = Math.max(...bodies.map(({ radius }) => radius));
   for (let body of bodies) {
-    const candidates = kdtree.query(body.posX, body.posY, body.radius + 15);
+    const candidates = kdtree.query(
+      body.posX,
+      body.posY,
+      body.radius + maxRadius
+    );
     const colliders = candidates.filter(
       candidate =>
         dist(body, candidate) < body.radius + candidate.radius &&
