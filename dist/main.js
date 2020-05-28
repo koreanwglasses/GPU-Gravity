@@ -151,7 +151,7 @@ function animate(t) {
         lastT = t;
         dt = Math.min(dt, 1);
         // step the simulation
-        data = simulation_1.updateTensor(data, data => simulation_1.stepGravity(data, { dt, gravConst: 1e5, dragCoeff: 0.1 }));
+        data = simulation_1.updateTensor(data, data => simulation_1.stepGravity(data, { dt, gravConst: 1e5, dragCoeff: 0.01 }));
         data = simulation_1.updateTensor(data, data => simulation_1.stepBoundary(data, { maxX: canvas.width, maxY: canvas.height }));
         // Retrieve data to draw
         bodies = yield simulation_1.tensorToBodies(data, bodies);
@@ -269,8 +269,9 @@ function dist(body1, body2) {
     return Math.sqrt(Math.pow(body1.posX - body2.posX, 2) + Math.pow(body1.posY - body2.posY, 2));
 }
 function* computeCollisions(kdtree, bodies) {
+    const maxRadius = Math.max(...bodies.map(({ radius }) => radius));
     for (let body of bodies) {
-        const candidates = kdtree.query(body.posX, body.posY, body.radius + 15);
+        const candidates = kdtree.query(body.posX, body.posY, body.radius + maxRadius);
         const colliders = candidates.filter(candidate => dist(body, candidate) < body.radius + candidate.radius &&
             body.posX < candidate.posX);
         for (let collider of colliders) {
