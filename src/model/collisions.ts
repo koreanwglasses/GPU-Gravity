@@ -1,22 +1,52 @@
 import { PhysicsBody } from "./physics-body";
 
 /**
+ * https://en.wikipedia.org/wiki/Quickselect#Algorithm
+ */
+function partition(
+  list: number[],
+  left: number,
+  right: number,
+  pivotIndex: number
+) {
+  function swap(i: number, j: number) {
+    const tmp = list[i];
+    list[i] = list[j];
+    list[j] = tmp;
+  }
+
+  const pivotValue = list[pivotIndex];
+  swap(pivotIndex, right); // Move pivot to end
+  let storeIndex = left;
+  for (let i = left; i < right; i++) {
+    if (list[i] < pivotValue) {
+      swap(storeIndex, i);
+      storeIndex++;
+    }
+  }
+  swap(right, storeIndex); // Move pivot to its final place
+  return storeIndex;
+}
+
+/**
  * Select the kth smallest element in xs
  * O(n)
  */
-function kSelect(k: number, xs: number[]): number {
-  let pivot = xs[Math.floor(Math.random() * xs.length)];
-  let low = xs.filter(x => x < pivot);
+function kSelect(k: number, list: number[]): number {
+  let left = 0;
+  let right = list.length;
 
-  if (low.length + 1 == k) {
-    return pivot;
-  }
-
-  if (low.length >= k) {
-    return kSelect(k, low);
-  } else {
-    let high = xs.filter(x => x >= pivot);
-    return kSelect(k - low.length, high);
+  while (true) {
+    if (left == right) return list[left];
+    let pivotIndex = Math.floor(Math.random() * (right - left)) + left; // select pivotIndex between left and right
+    pivotIndex = partition(list, left, right, pivotIndex);
+    if (k == pivotIndex) {
+      return list[k];
+    } else if (k < pivotIndex) {
+      right = pivotIndex - 1;
+    } else {
+      left = pivotIndex + 1;
+    }
   }
 }
 
