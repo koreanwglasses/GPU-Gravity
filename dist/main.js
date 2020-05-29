@@ -153,7 +153,7 @@ function animate(t) {
         // step the simulation
         data = simulation_1.updateTensor(data, data => simulation_1.stepGravity(data, {
             dt,
-            gravConst: 1e5,
+            gravConst: 1e5 * (params.grav ? +params.grav : 1),
             dragCoeff: params.drag ? +params.drag : 0.01
         }));
         data = simulation_1.updateTensor(data, data => simulation_1.stepBoundary(data, { maxX: canvas.width, maxY: canvas.height }));
